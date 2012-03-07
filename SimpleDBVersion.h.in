@@ -1,0 +1,10 @@
+#ifndef SimpleDBVersionH
+#define SimpleDBVersionH 1
+
+#define SimpleDB_MAJOR_VERSION @SimpleDB_MAJOR_VERSION@
+#define SimpleDB_MINOR_VERSION @SimpleDB_MINOR_VERSION@
+#define SimpleDB_BUILD_VERSION @SimpleDB_BUILD_VERSION@
+
+#define SimpleDB_VERSION "@SimpleDB_VERSION@"
+
+#endif
