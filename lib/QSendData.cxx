@@ -1,6 +1,6 @@
 #include "QSendData.h"
 
-#include <QTcpSocket>
+#include <QSslSocket>
 #include <QDateTime>
 
 #include "QHmacSha1.h"
@@ -12,24 +12,28 @@
 #include <string>
 
 // http://docs.amazonwebservices.com/AmazonSimpleDB/latest/DeveloperGuide/HMACAuth.html
-QString AWSEncode( const QString &src )
+QByteArray AWSEncode( const QString &src )
 {
-  std::ostringstream oss;
+  return AWSEncode( src.toUtf8() );
+}
 
-  QByteArray byte_array( src.toAscii() );
+QByteArray AWSEncode( const QByteArray &src )
+{
+  QByteArray retval;
+
   char temp, hexa[2], mod_temp;
 
-  for ( int i = 0; i < byte_array.size(); ++i )
+  for ( int i = 0; i < src.size(); ++i )
   {
-    temp = byte_array[i];
+    temp = src[i];
     if ( ( temp >= 'A' ) && ( temp <= 'Z' ) )
-      oss.put( temp );
+      retval.push_back( temp );
     else if ( ( temp >= 'a' ) && ( temp <= 'z' ) )
-      oss.put( temp );
+      retval.push_back( temp );
     else if ( ( temp >= '0' ) && ( temp <= '9' ) )
-      oss.put( temp );
+      retval.push_back( temp );
     else if ( ( temp == '-' ) || ( temp == '_' ) || ( temp == '~' ) || ( temp == '.' ) )
-      oss.put( temp );
+      retval.push_back( temp );
     else
     {
       mod_temp = temp & 0x0F;
@@ -45,15 +49,13 @@ QString AWSEncode( const QString &src )
       else
         hexa[1] = 'A' + ( mod_temp - 10 );
 
-
-      oss.put('%');
-      oss.put(hexa[1]);
-      oss.put(hexa[0]);
-
+      retval.push_back( '%' );
+      retval.push_back(hexa[1]);
+      retval.push_back(hexa[0]);
     }
   }
 
-  return QString::fromStdString( oss.str() );
+  return retval;
 }
 
 typedef std::map<std::string, std::string> items_type;
@@ -135,7 +137,7 @@ void QSendData::setAmazonCredinals( const QUrl &server, const QString &AKID, con
 
 void QSendData::addPair( const QString &key, const QString &value )
 {
-  this->store->key_pairs.insert( std::make_pair( AWSEncode( key ).toStdString(), AWSEncode( value ).toStdString() ) );
+  this->store->key_pairs.insert( std::make_pair<std::string,std::string>( AWSEncode( key ).data(), AWSEncode( value ).data() ) );
 }
 
 void QSendData::clear( void )
@@ -152,12 +154,12 @@ void QSendData::sendRequest( void )
   items.insert( std::make_pair( "AWSAccessKeyId", this->AKID.toStdString() ) );
 
   for ( temp_iter = this->store->key_pairs.begin(); temp_iter != this->store->key_pairs.end(); ++temp_iter )
-    items.insert( std::make_pair( temp_iter->first, temp_iter->second ) );
+    items.insert( std::make_pair<std::string,std::string>( temp_iter->first, temp_iter->second ) );
 
-  items.insert( std::make_pair( "SignatureMethod", "HmacSHA1" ) );
-  items.insert( std::make_pair( "SignatureVersion", "2" ) );
-  items.insert( std::make_pair( "Timestamp", AWSEncode( cur_date.toString( Qt::ISODate ) ).toStdString() ) );
-  items.insert( std::make_pair( "Version", "2009-04-15" ) );
+  items.insert( std::make_pair<std::string,std::string>( "SignatureMethod", "HmacSHA1" ) );
+  items.insert( std::make_pair<std::string,std::string>( "SignatureVersion", "2" ) );
+  items.insert( std::make_pair<std::string,std::string>( "Timestamp", AWSEncode( cur_date.toString( Qt::ISODate ) ).data() ) );
+  items.insert( std::make_pair<std::string,std::string>( "Version", "2009-04-15" ) );
 
   QByteArray ba_password( this->SAK.toAscii() );
 
@@ -173,7 +175,7 @@ void QSendData::sendRequest( void )
 
   QByteArray signature = QHmacSha1::CalcHmacSha1( target.c_str(), ba_password );
 
-  items.insert( std::make_pair( "Signature", AWSEncode( QString( signature.toBase64() ) ).toStdString() ) );
+  items.insert( std::make_pair<std::string,std::string>( "Signature", AWSEncode( signature.toBase64() ).data() ) );
 
   generate_data( items, target, this->server.host().toStdString(), false );
 
@@ -182,13 +184,26 @@ void QSendData::sendRequest( void )
   debug_file.flush();
   debug_file.close();
 
-  QTcpSocket * connection = new QTcpSocket( this );
-  connection->connectToHost( this->server.host(), 80 );
-
-  if ( ! connection->waitForConnected() )
+  QSslSocket * connection = new QSslSocket( this );
+ 
+  if ( this->server.scheme() == "http" )
   {
-    delete connection;
-    return;
+    connection->connectToHost( this->server.host(), 80 );
+    if ( ! connection->waitForConnected() )
+    {
+      delete connection;
+      return;
+    }
+  }
+  else
+  {
+    connection->setProtocol( QSsl::SslV2 );
+    connection->connectToHostEncrypted( this->server.host(), 443 );
+    if ( ! connection->waitForEncrypted() )
+    {
+      delete connection;
+      return;
+    }
   }
 
   connection->write( target.c_str() );

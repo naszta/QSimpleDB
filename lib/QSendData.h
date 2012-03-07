@@ -4,9 +4,11 @@
 #include <QObject>
 #include <QString>
 #include <QUrl>
+#include <QByteArray>
 #include "winExport.h"
 
-sdblibEXPORT QString AWSEncode( const QString &src );
+sdblibEXPORT QByteArray AWSEncode( const QString &src );
+sdblibEXPORT QByteArray AWSEncode( const QByteArray &src );
 
 class QSendDataPrivate;
 
