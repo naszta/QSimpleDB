@@ -7,7 +7,6 @@
 
 #include <ostream>
 #include <sstream>
-#include <fstream>
 #include <map>
 #include <string>
 
@@ -166,9 +165,6 @@ void QSendData::sendRequest( void )
   std::string target;
   generate_data( items, target, this->server.host().toStdString(), true );
   
-  std::ofstream debug_file( "D:\\debug.txt" );
-  debug_file << "To sign:\n" << target;
-
   QByteArray ba_target;
   ba_target.resize( target.size() );
   memcpy( ba_target.data(), target.c_str(), target.size() );
@@ -178,11 +174,6 @@ void QSendData::sendRequest( void )
   items.insert( std::make_pair<std::string,std::string>( "Signature", AWSEncode( signature.toBase64() ).data() ) );
 
   generate_data( items, target, this->server.host().toStdString(), false );
-
-
-  debug_file << "\n---\nTo send:\n" << target << "\n---";
-  debug_file.flush();
-  debug_file.close();
 
   QSslSocket * connection = new QSslSocket( this );
  
