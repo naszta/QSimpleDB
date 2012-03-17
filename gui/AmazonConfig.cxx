@@ -21,6 +21,13 @@ AmazonConfig::AmazonConfig( QWidget * parent /* = 0 */, Qt::WindowFlags flag /* 
   ui.lineServer->setText( this->sets->value( "AmazonConfig/Server" ).toString() );
   ui.lineAKID->setText( this->sets->value( "AmazonConfig/AKID" ).toString() );
   ui.lineSAK->setText( this->sets->value( "AmazonConfig/SAK" ).toString() );
+
+  switch ( this->sets->value( "AmazonConfig/SHA", 1 ).toInt() )
+  {
+  case   1 : ui.radioSha1->setChecked(true); break;
+  case 256 : ui.radioSha256->setChecked(true); break;
+  default : ui.radioSha1->setChecked(true);
+  };
 }
 
 AmazonConfig::~AmazonConfig( void )
@@ -39,6 +46,14 @@ void AmazonConfig::accept( void )
   this->sets->setValue( "AmazonConfig/SAK", ui.lineSAK->text() );
   this->sets->setValue( "AmazonConfig/AKID", ui.lineAKID->text() );
   this->sets->setValue( "AmazonConfig/Server", ui.lineServer->text() );
+
+  int sha_alg = 1;
+  if ( ui.radioSha1->isChecked() )
+    sha_alg = 1;
+  else if ( ui.radioSha256->isChecked() )
+    sha_alg = 256;
+  this->sets->setValue( "AmazonConfig/SHA", sha_alg );
+
   QDialog::accept();
 }
 

@@ -57,6 +57,32 @@
     </layout>
    </item>
    <item>
+    <widget class="QGroupBox" name="groupShaType">
+     <property name="title">
+      <string>Sign algorithm</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <widget class="QRadioButton" name="radioSha1">
+        <property name="text">
+         <string>Sha1</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QRadioButton" name="radioSha256">
+        <property name="text">
+         <string>Sha256</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -123,6 +149,8 @@
   <tabstop>lineServer</tabstop>
   <tabstop>lineAKID</tabstop>
   <tabstop>lineSAK</tabstop>
+  <tabstop>radioSha1</tabstop>
+  <tabstop>radioSha256</tabstop>
   <tabstop>pushLoad</tabstop>
   <tabstop>pushSave</tabstop>
   <tabstop>pushOK</tabstop>

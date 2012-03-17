@@ -28,6 +28,7 @@ SET(SimpleDBLibQtHdrs
   QSimpleDB.h
   QHmacSha1.h 
   QAwsXmlParse.h
+  QCloudCryptographicHash.h
 )
 
 SET(UIS
@@ -35,6 +36,16 @@ SET(UIS
 
 SET(RCCS
 )
+
+#IF(WIN32)
+#  SET(SimpleDBLibSrcs ${SimpleDBLibSrcs}
+#    QCloudCryptographicHashWin.cxx
+#  )
+#ELSE(WIN32)
+  SET(SimpleDBLibSrcs ${SimpleDBLibSrcs}
+    QCloudCryptographicHashUnix.cxx
+  )
+#ENDIF(WIN32)
 
 QT4_ADD_RESOURCES(RCCSrcs ${RCCS})  
 QT4_WRAP_UI(UISrcs ${UIS})
@@ -57,6 +68,7 @@ TARGET_LINK_LIBRARIES(SimpleDBLib
 
 INSTALL(TARGETS SimpleDBLib
   RUNTIME DESTINATION bin
-  LIBRARY DESTINATION lib )
+  LIBRARY DESTINATION lib
+)
 
 MESSAGE( STATUS "SimpleDBLib has been added." )

@@ -13,6 +13,7 @@ public:
   virtual ~QHmacSha1( void );
 
   static QByteArray CalcHmacSha1( const QByteArray &baseString, const QByteArray &key );
+  static QByteArray CalcHmacSha256( const QByteArray &baseString, const QByteArray &key );
 };
 
 #endif

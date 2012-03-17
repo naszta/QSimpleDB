@@ -21,7 +21,16 @@ MainWindow::MainWindow( QWidget * parent /* = 0 */, Qt::WindowFlags flag /* = 0 
   connect( this->simple_db, SIGNAL(finished(const QString&)), this->parser, SLOT(parse(const QString &)) );
   connect( this->parser, SIGNAL(result(const QString&)), ui.plainAnswer, SLOT(setPlainText(const QString &)) );
 
-  this->simple_db->setAmazonCredinals( this->sets->value( "AmazonConfig/Server" ).toUrl(), this->sets->value( "AmazonConfig/AKID" ).toString(), this->sets->value( "AmazonConfig/SAK" ).toString() );
+  int sha_alg = this->sets->value( "AmazonConfig/SHA", 1 ).toInt();
+  QSendData::ShaType sha_type = QSendData::Sha1;
+  switch ( sha_alg )
+  {
+  case 1 : sha_type = QSendData::Sha1; break;
+  case 256 : sha_type = QSendData::Sha256; break;
+  default : sha_type = QSendData::Sha1;
+  };
+
+  this->simple_db->setAmazonCredinals( this->sets->value( "AmazonConfig/Server" ).toUrl(), this->sets->value( "AmazonConfig/AKID" ).toString(), this->sets->value( "AmazonConfig/SAK" ).toString(), sha_type );
   this->restoreGeometry( this->sets->value( "MainWindow/Geometry", this->saveGeometry() ).toByteArray() );
 
   ui.lineDbName->setText( this->sets->value( "MainWindow/DB" ).toString() );
@@ -76,8 +85,16 @@ void MainWindow::pushConfig( void )
   AmazonConfig * config = new AmazonConfig( this );
   if ( config->exec() == QDialog::Accepted )
   {
-    this->simple_db->setAmazonCredinals( this->sets->value( "AmazonConfig/Server" ).toUrl(), this->sets->value( "AmazonConfig/AKID" ).toString(), this->sets->value( "AmazonConfig/SAK" ).toString() );
+    int sha_alg = this->sets->value( "AmazonConfig/SHA", 1 ).toInt();
+    QSendData::ShaType sha_type = QSendData::Sha1;
+    switch ( sha_alg )
+    {
+    case 1 : sha_type = QSendData::Sha1; break;
+    case 256 : sha_type = QSendData::Sha256; break;
+    default : sha_type = QSendData::Sha1;
+    };
+
+    this->simple_db->setAmazonCredinals( this->sets->value( "AmazonConfig/Server" ).toUrl(), this->sets->value( "AmazonConfig/AKID" ).toString(), this->sets->value( "AmazonConfig/SAK" ).toString(), sha_type );
   }
   delete config;
 }
-

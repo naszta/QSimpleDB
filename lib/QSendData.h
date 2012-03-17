@@ -16,10 +16,14 @@ class sdblibEXPORT QSendData : public QObject
 {
   Q_OBJECT
 public:
+  enum ShaType
+  {
+    Sha1, Sha256
+  };
   QSendData( QObject * parent = 0 );
   virtual ~QSendData( void );
 
-  virtual void setAmazonCredinals( const QUrl &server, const QString &AKID, const QString &SAK );
+  virtual void setAmazonCredinals( const QUrl &server, const QString &AKID, const QString &SAK, ShaType sign_type = Sha256 );
   virtual void addPair( const QString &key, const QString &value );
   virtual void clear( void );
   virtual void sendRequest( void );
@@ -31,6 +35,7 @@ protected:
   QUrl server;
   QString AKID;
   QString SAK;
+  ShaType sign_type;
 
 private:
   QSendDataPrivate * store;

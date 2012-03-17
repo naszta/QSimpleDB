@@ -6,11 +6,12 @@
 
 #include "SimpleDBVersion.h"
 
-int main( int argc, char** argv )
+
+int main( int argc, char ** argv )
 {
   QApplication app( argc, argv );
 
-  app.setApplicationName( "SimpleDBBin" );
+  app.setApplicationName( "SimpleDBGui" );
   app.setOrganizationName( "Nasztanovics Ferenc" );
   app.setOrganizationDomain( "naszta.hu" );
 #if QT_VERSION >= 0x040400

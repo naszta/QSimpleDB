@@ -113,7 +113,7 @@ void generate_data( items_type &source, std::string &target, const std::string &
 }
 
 QSendData::QSendData( QObject * parent )
-  : QObject( parent ), store( new QSendDataPrivate )
+  : QObject( parent ), store( new QSendDataPrivate ), sign_type(Sha1)
 {
 
 }
@@ -127,11 +127,12 @@ QSendData::~QSendData( void )
   }
 }
 
-void QSendData::setAmazonCredinals( const QUrl &server, const QString &AKID, const QString &SAK )
+void QSendData::setAmazonCredinals( const QUrl &server, const QString &AKID, const QString &SAK, ShaType sign_type )
 {
   this->server = server;
   this->AKID = AKID;
   this->SAK = SAK;
+  this->sign_type = sign_type;
 }
 
 void QSendData::addPair( const QString &key, const QString &value )
@@ -155,7 +156,10 @@ void QSendData::sendRequest( void )
   for ( temp_iter = this->store->key_pairs.begin(); temp_iter != this->store->key_pairs.end(); ++temp_iter )
     items.insert( std::make_pair<std::string,std::string>( temp_iter->first, temp_iter->second ) );
 
-  items.insert( std::make_pair<std::string,std::string>( "SignatureMethod", "HmacSHA1" ) );
+  if ( this->sign_type == Sha1 )
+    items.insert( std::make_pair<std::string,std::string>( "SignatureMethod", "HmacSHA1" ) );
+  else
+    items.insert( std::make_pair<std::string,std::string>( "SignatureMethod", "HmacSHA256" ) );
   items.insert( std::make_pair<std::string,std::string>( "SignatureVersion", "2" ) );
   items.insert( std::make_pair<std::string,std::string>( "Timestamp", AWSEncode( cur_date.toString( Qt::ISODate ) ).data() ) );
   items.insert( std::make_pair<std::string,std::string>( "Version", "2009-04-15" ) );
@@ -169,7 +173,12 @@ void QSendData::sendRequest( void )
   ba_target.resize( target.size() );
   memcpy( ba_target.data(), target.c_str(), target.size() );
 
-  QByteArray signature = QHmacSha1::CalcHmacSha1( target.c_str(), ba_password );
+  QByteArray signature;
+  
+  if ( this->sign_type == Sha1 )
+    signature = QHmacSha1::CalcHmacSha1( target.c_str(), ba_password );
+  else
+    signature = QHmacSha1::CalcHmacSha256( target.c_str(), ba_password );
 
   items.insert( std::make_pair<std::string,std::string>( "Signature", AWSEncode( signature.toBase64() ).data() ) );
 
