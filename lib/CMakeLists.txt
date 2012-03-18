@@ -37,15 +37,15 @@ SET(UIS
 SET(RCCS
 )
 
-#IF(WIN32)
-#  SET(SimpleDBLibSrcs ${SimpleDBLibSrcs}
-#    QCloudCryptographicHashWin.cxx
-#  )
-#ELSE(WIN32)
+IF(WIN32)
+  SET(SimpleDBLibSrcs ${SimpleDBLibSrcs}
+    QCloudCryptographicHashWin.cxx
+  )
+ELSE(WIN32)
   SET(SimpleDBLibSrcs ${SimpleDBLibSrcs}
     QCloudCryptographicHashUnix.cxx
   )
-#ENDIF(WIN32)
+ENDIF(WIN32)
 
 QT4_ADD_RESOURCES(RCCSrcs ${RCCS})  
 QT4_WRAP_UI(UISrcs ${UIS})
@@ -55,7 +55,13 @@ SOURCE_GROUP("Generated" FILES ${RCCSrcs})
 SOURCE_GROUP("Generated" FILES ${UISrcs})
 SOURCE_GROUP("Generated" FILES ${MOCSrcs})
 
-ADD_LIBRARY(SimpleDBLib SHARED ${SimpleDBLibSrcs} ${SimpleDBLibHdrs} ${SimpleDBLibQtHdrs} ${UISrcs} ${MOCSrcs} ${RCCSrcs})
+IF(WIN32)
+  SET(WIN_VERSION ${CMAKE_CURRENT_BINARY_DIR}/SimpleDBLib.rc)
+  CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/SimpleDBLib.rc.in ${WIN_VERSION} @ONLY IMMEDIATE)
+  SOURCE_GROUP("Resources" FILES ${WIN_VERSION} )
+ENDIF(WIN32) 
+
+ADD_LIBRARY(SimpleDBLib SHARED ${SimpleDBLibSrcs} ${SimpleDBLibHdrs} ${SimpleDBLibQtHdrs} ${UISrcs} ${MOCSrcs} ${RCCSrcs} ${WIN_VERSION})
 
 SET_TARGET_PROPERTIES(SimpleDBLib PROPERTIES
   VERSION "${SimpleDB_MAJOR_VERSION}.${SimpleDB_MINOR_VERSION}"
